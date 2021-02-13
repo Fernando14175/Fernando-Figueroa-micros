@@ -2469,17 +2469,7 @@ ENDM
   contabajo EQU 0
 
 
-PSECT udata_bank0
-
-  CONT1: ds 1
-  CONT2: ds 1
-
-
-PSECT resVect, class = CODE, abs, delta = 2
- ORG 00h
- resetVEC:
-    PAGESEL SETUP
-    GOTO SETUP
+GOTO SETUP
 
 PSECT code, delta = 2, abs
  ORG 100h
@@ -2513,7 +2503,7 @@ SETUP:
     BCF TRISC, 2
     BCF TRISC, 3
 
-    BCF TRISA, 0 ;ponemos el puerto ((PORTA) and 07Fh), 0 como una salida
+    BCF TRISA, 1 ;ponemos el puerto ((PORTA) and 07Fh), 0 como una salida
     BSF TRISA, 2 ;ponemos puerto ((PORTA) and 07Fh), 2 y ((PORTA) and 07Fh), 3 del PORTA como una entrada
     BSF TRISA, 3
 
@@ -2522,12 +2512,12 @@ SETUP:
 
     BCF STATUS,6 ;nos cambiamos de banco
     BCF STATUS,5
+    BCF STATUS, 1 ;limpiamos el bit del carry
 
     CLRF PORTA ;limpiamos el puretoA
     CLRF PORTB ;limpiamos el puertoB
     CLRF PORTC ;limpipamos el puertoc
     CLRF PORTD ;limpiamos el puertod
-    BCF PORTA,0 ;ponemos el ((PORTA) and 07Fh), 0 en 0
 ;-----------Main-----------------
 
 main: ;declaramos el main
@@ -2630,26 +2620,6 @@ carry:
 
     btfss STATUS, 1 ;revisamos que el bit de carry del registro status que se prende luego de sumar
     return
-    bsf PORTA, 0 ;seteamos el puertoRA0 en 1 para encender el led de carry
+    bsf PORTA, 1 ;seteamos el puertoRA0 en 1 para encender el led de carry
     clrf PORTC ;limpiamos el peurto c porque se paso de 15 que es valor maximo de nuestro contador
     return
-
-
-;-----------Delays-----------------
-    DELAY_50MS:
- MOVLW 100
- MOVWF CONT2
-    CONFIG1:
- CALL DELAY_50MS
- DECFSZ CONT2,F
- GOTO CONFIG1
-    RETURN
-
-    DELAY_500US:
- MOVLW 250
- MOVWF CONT1
- DECFSZ CONT1,F
- GOTO $-1
-    RETURN
-
-END

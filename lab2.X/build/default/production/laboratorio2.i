@@ -2466,7 +2466,8 @@ ENDM
     CONFIG BOR4V=BOR40V
 
      contarriba EQU 0
-     contabajo EQU 0
+     alarma EQU 0
+
 
 
 PSECT udata_bank0
@@ -2500,80 +2501,110 @@ SETUP:
     BCF TRISB,3
     BCF TRISB,4
     BCF TRISB,5
+    BCF TRISB,6
+    BCF TRISB,7
 
-    BCF TRISD,0
-    BCF TRISD,1
-    BCF TRISD,2
-    BCF TRISD,3
+    BCF TRISC,0
+    BCF TRISC,1
+    BCF TRISC,2
+    BCF TRISC,3
+    BCF TRISC,4
+    BCF TRISC,5
+    BCF TRISC,6
+    BCF TRISC,7
 
-    BSF TRISB,0
-    BSF TRISB,1
+    BCF TRISE,0
+
+    BSF TRISA,0
+    BSF TRISA,1
+
+    BCF STATUS,6 ;nos cambiamos de banco
+    BCF STATUS,5
 
     clrf PORTB
-    clrf PORTD
+    clrf PORTC
+    bcf PORTE,0
 
 ;-----------Main-----------------
 
-main: ;declaramos el main
-    call frecuencia
-    call timer0
-    call loop_display
+main:
+      call frecuencia
+      call timer0
+      call presionar_arriba
+      call presionar_abajo
+
+
 
 contador_timer0:
     btfss ((INTCON) and 07Fh), 2
     goto $-1
     call empezar
     incf PORTB
-    goto contador_timer0
+    goto main
 
 
-
-
-;--------------------Display-----------------------
-loop_display:
-call display
-MOVWF PORTC
-return
-
-;--------------------Botones -----------------------
+;--------------------Botones subir -----------------------
 presionar_arriba:
     btfss PORTA, 0 ;revisamos si esta presionado el boton
-    return ;regresamos a donde llamamos la rutina
+    return
     call anti_rebote_Arriba1 ;llamamos a la siguiente rutina
     return ;regresamos a donde llamamos a la rutina
 anti_rebote_Arriba1:
-    btfsc PORTA, 0 ;revisamos que el boton ya no este presionado
+    btfsc PORTA, 0
     goto anti_rebote_Arriba1 ;nos movemos a la rutina
     call aumentar1 ;llamamos a la rutina
     return
 aumentar1:
     INCF contarriba,1
-    MOVF contarriba,W
+    MOVF contarriba, w
     call display
+    MOVWF PORTC
+    return
+;--------------------Botones bajar -----------------------
+ presionar_abajo:
+    btfss PORTA, 1 ;revisamos si esta presionado el boton
+    return
+    call anti_rebote_abajo1 ;llamamos a la siguiente rutina
+    return ;regresamos a donde llamamos a la rutina
+anti_rebote_abajo1:
+    btfsc PORTA, 1
+    goto anti_rebote_abajo1 ;nos movemos a la rutina
+    call bajar1 ;llamamos a la rutina
+    return
+bajar1:
+    DECF contarriba,1
+    MOVF contarriba, w
+    call display
+    MOVWF PORTC
+    return
 
-;--------------------Tabla-----------------------
+;--------------------Tabla----------------------
 
 display:
-   MOVWF PCL
+   CLRF PCLATH
+   bsf PCLATH, 0
+   ADDWF PCL
    RETLW 0000B ;numero_0
-   RETLW 0001B ;numero_1
-   RETLW 0010B ;numero_2
-   RETLW 0011B ;numero_3
-   RETLW 0100B ;numero_4
-   RETLW 0101B ;numero_5
+   RETLW 1000B ;numero_1
+   RETLW 0100B ;numero_2
+   RETLW 1100B ;numero_3
+   RETLW 0010B ;numero_4
+   RETLW 1010B ;numero_5
    RETLW 0110B ;numero_6
-   RETLW 0111B ;numero_7
-   RETLW 1000B ;numero_8
-   RETLW 1001B;numero_9
-   RETLW 1010B;numero_A
-   RETLW 1011B ;numero_B
-   RETLW 1100B ;numero_C
-   RETLW 1101B ;numero_D
-   RETLW 1110B ;numero_E
+   RETLW 1110B ;numero_7
+   RETLW 0001B ;numero_8
+   RETLW 1001B ;numero_9
+   RETLW 0101B ;numero_A
+   RETLW 1101B ;numero_B
+   RETLW 0011B ;numero_C
+   RETLW 1011B ;numero_D
+   RETLW 0111B ;numero_E
    RETLW 1111B ;numero_F
    return
 
 ;-----------Configuraciones timer y oscilador-----------------
+
+
 
 timer0:
     banksel OPTION_REG
@@ -2600,6 +2631,12 @@ timer0:
     movwf TMR0
     bcf ((INTCON) and 07Fh), 2
     return
+
+;-----------------------------Alarma---------------------------
+
+
+
+
 
 
 ;-----------Delays-----------------
