@@ -1,7 +1,7 @@
 # 1 "Lab1.s"
 # 1 "<built-in>" 1
 # 1 "Lab1.s" 2
-    PROCESSOR 16F887
+     PROCESSOR 16F887
 
 # 1 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\xc.inc" 1 3
 
@@ -2493,10 +2493,7 @@ SETUP:
     BCF TRISB, 1
     BCF TRISB, 2
     BCF TRISB, 3
-    BCF TRISB, 4
-    BCF TRISB, 5
-    BCF TRISB, 6
-    BCF TRISB, 7
+
 
     BCF TRISC, 0 ;ponemos los 4 pines de c como salida
     BCF TRISC, 1

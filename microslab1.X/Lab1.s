@@ -1,4 +1,4 @@
-    PROCESSOR 16F887
+     PROCESSOR 16F887
     #include "xc.inc"
   
     CONFIG FOSC = INTRC_NOCLKOUT
@@ -44,10 +44,7 @@ SETUP:
     BCF  TRISB, 1
     BCF  TRISB, 2 
     BCF  TRISB, 3
-    BCF  TRISB, 4
-    BCF  TRISB, 5
-    BCF  TRISB, 6 
-    BCF  TRISB, 7
+   
     
     BCF  TRISC, 0 ;ponemos los 4 pines de c como salida 
     BCF  TRISC, 1
