@@ -2476,11 +2476,8 @@ PSECT udata_bank0
   CONT2: ds 1
 
 
-PSECT resVect, class = CODE, abs, delta = 2
- ORG 00h
- resetVEC:
-    PAGESEL SETUP
-    GOTO SETUP
+
+GOTO SETUP
 
 PSECT code, delta = 2, abs
  ORG 100h
@@ -2499,19 +2496,12 @@ SETUP:
     BCF TRISB,1
     BCF TRISB,2
     BCF TRISB,3
-    BCF TRISB,4
-    BCF TRISB,5
-    BCF TRISB,6
-    BCF TRISB,7
 
     BCF TRISC,0
     BCF TRISC,1
     BCF TRISC,2
     BCF TRISC,3
-    BCF TRISC,4
-    BCF TRISC,5
-    BCF TRISC,6
-    BCF TRISC,7
+
 
     BCF TRISE,0
 
@@ -2528,19 +2518,18 @@ SETUP:
 ;-----------Main-----------------
 
 main:
+      call comparar
       call frecuencia
       call timer0
       call presionar_arriba
       call presionar_abajo
-
-
-
-contador_timer0:
-    btfss ((INTCON) and 07Fh), 2
-    goto $-1
-    call empezar
-    incf PORTB
-    goto main
+      btfss ((INTCON) and 07Fh), 2
+      goto $-1
+      call empezar
+      incf PORTB
+      call comparar
+      call resett
+      goto main
 
 
 ;--------------------Botones subir -----------------------
@@ -2633,10 +2622,18 @@ timer0:
     return
 
 ;-----------------------------Alarma---------------------------
+ comparar:
+    MOVF PORTB, W
+    XORWF PORTC, W
+    BTFSC STATUS, 2
+    bsf PORTE,0
+    return
 
-
-
-
+;----------------------------reset----------------------------
+ resett:
+   btfsc PORTE, 0
+   bcf PORTE,0
+    return
 
 
 ;-----------Delays-----------------
