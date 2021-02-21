@@ -2518,6 +2518,7 @@ SETUP:
 ;-----------Main-----------------
 
 main:
+
       call comparar
       call frecuencia
       call timer0
@@ -2528,7 +2529,7 @@ main:
       call empezar
       incf PORTB
       call comparar
-      call resett
+      bcf PORTE,0
       goto main
 
 
@@ -2544,10 +2545,10 @@ anti_rebote_Arriba1:
     call aumentar1 ;llamamos a la rutina
     return
 aumentar1:
-    INCF contarriba,1
-    MOVF contarriba, w
-    call display
-    MOVWF PORTC
+    INCF contarriba,1 ;aumentamos el contador
+    MOVF contarriba, w ;movemos al registro w
+    call display ;llamamos a la funcion display
+    MOVWF PORTC ;movemos el valor del display al puerto c
     return
 ;--------------------Botones bajar -----------------------
  presionar_abajo:
@@ -2561,18 +2562,18 @@ anti_rebote_abajo1:
     call bajar1 ;llamamos a la rutina
     return
 bajar1:
-    DECF contarriba,1
-    MOVF contarriba, w
-    call display
-    MOVWF PORTC
+    DECF contarriba,1 ;disminuimos el contador
+    MOVF contarriba, w ;movemos al registro w
+    call display ;llamamos a la funcion display
+    MOVWF PORTC ;movemos el valor del display al puerto c
     return
 
 ;--------------------Tabla----------------------
 
 display:
-   CLRF PCLATH
-   bsf PCLATH, 0
-   ADDWF PCL
+   CLRF PCLATH ;limpiamos el registro
+   bsf PCLATH, 0 ;ponemos en 1 el bit 0 del registro
+   ADDWF PCL ;sumamos 1 al pcl para poder determinar que sale ne l display
    RETLW 0000B ;numero_0
    RETLW 1000B ;numero_1
    RETLW 0100B ;numero_2
@@ -2625,32 +2626,26 @@ timer0:
  comparar:
     MOVF PORTB, W
     XORWF PORTC, W
-    BTFSC STATUS, 2
+    BTFSS STATUS, 2
+    return
     bsf PORTE,0
+    call DELAY
+    clrf PORTB
     return
 
-;----------------------------reset----------------------------
- resett:
-   btfsc PORTE, 0
-   bcf PORTE,0
-    return
+DELAY:
 
+    MOVLW 0Xfa
+    MOVWF CONT1
+    MOVLW 0X0d
+    MOVWF CONT2
 
-;-----------Delays-----------------
-    DELAY_50MS:
- MOVLW 100
- MOVWF CONT2
-    CONFIG1:
- CALL DELAY_50MS
- DECFSZ CONT2,F
- GOTO CONFIG1
-    RETURN
-
-    DELAY_500US:
- MOVLW 250
- MOVWF CONT1
- DECFSZ CONT1,F
- GOTO $-1
-    RETURN
+LOOP:
+    DECFSZ CONT1, 1
+    GOTO LOOP
+    DECFSZ CONT2, 1
+    GOTO LOOP
+    NOP
+RETURN
 
 END

@@ -43,18 +43,18 @@ SETUP:
     BCF  STATUS,6 ;nos cambiamos de banco
     BSF  STATUS,5 
    
-    BCF TRISB,0
+    BCF TRISB,0 //salidas y entras puerto b
     BCF TRISB,1
     BCF TRISB,2
     BCF TRISB,3
     
-    BCF TRISC,0
+    BCF TRISC,0 //salidas y entras puerto c
     BCF TRISC,1
     BCF TRISC,2
     BCF TRISC,3
     
     
-    BCF TRISE,0
+    BCF TRISE,0 //salidas y entras puerto e
     
     BSF TRISA,0
     BSF TRISA,1
@@ -62,25 +62,26 @@ SETUP:
     BCF  STATUS,6 ;nos cambiamos de banco
     BCF  STATUS,5 
     
-    clrf PORTB
-    clrf PORTC
-    bcf  PORTE,0
+    clrf PORTB //limpiamos puertob
+    clrf PORTC //limpiamos puerto c 
+    bcf  PORTE,0 //limpiamos RE0
    
 ;-----------Main-----------------
     
 main:
-      call comparar 
-      call frecuencia
-      call timer0
-      call presionar_arriba
-      call presionar_abajo
-      btfss T0IF
+      
+      call comparar	    //llamamos la rutina comparar
+      call frecuencia	    //llamamos la funcion frecuencia
+      call timer0	    //llamamos la funcion timer0
+      call presionar_arriba //llamamos la funcion presionar arriba
+      call presionar_abajo  //llamamos la funcion presionar abajo
+      btfss T0IF            //llamamos la funcion T0IF
       goto  $-1
-      call  empezar
-      incf  PORTB
-      call  comparar 
-      call resett
-      goto main
+      call  empezar         //llamamos la funcion empezar
+      incf  PORTB           //incrementamos el puertob
+      call  comparar        //llamamos la funcion comparar
+      bcf  PORTE,0          //limpiamos el puerto RE0
+      goto main             //vamos al main
        
 
 ;--------------------Botones subir -----------------------  
@@ -95,10 +96,10 @@ anti_rebote_Arriba1:
     call aumentar1              ;llamamos a la rutina 
     return
 aumentar1:
-    INCF contarriba,1
-    MOVF contarriba, w
-    call display
-    MOVWF PORTC
+    INCF contarriba,1           ;aumentamos el contador 
+    MOVF contarriba, w          ;movemos al registro w
+    call display                ;llamamos a la funcion display
+    MOVWF PORTC                 ;movemos el valor del display al puerto c
     return
 ;--------------------Botones bajar -----------------------  
  presionar_abajo: 
@@ -109,21 +110,21 @@ aumentar1:
 anti_rebote_abajo1:
     btfsc PORTA, 1
     goto anti_rebote_abajo1    ;nos movemos a la rutina 
-    call bajar1              ;llamamos a la rutina 
+    call bajar1                ;llamamos a la rutina 
     return
 bajar1:
-    DECF contarriba,1
-    MOVF contarriba, w
-    call display
-    MOVWF PORTC
+    DECF contarriba,1          ;disminuimos el contador  
+    MOVF contarriba, w         ;movemos al registro w
+    call display               ;llamamos a la funcion display
+    MOVWF PORTC                ;movemos el valor del display al puerto c
     return
     
 ;--------------------Tabla----------------------
     
 display:
-   CLRF  PCLATH
-   bsf   PCLATH, 0 
-   ADDWF PCL
+   CLRF  PCLATH              ;limpiamos el registro
+   bsf   PCLATH, 0           ;ponemos en 1 el bit 0 del registro
+   ADDWF PCL                 ;sumamos 1 al pcl para poder determinar que sale ne l display
    RETLW 0000B ;numero_0
    RETLW 1000B ;numero_1
    RETLW 0100B ;numero_2
@@ -147,8 +148,8 @@ display:
  
     
 timer0:
-    banksel OPTION_REG
-    bcf     T0CS
+    banksel OPTION_REG //nos vamos al banko 1
+    bcf     T0CS //escogemos los valores del timer
     bcf     PSA
     bsf     PS2
     bsf     PS1
@@ -158,8 +159,8 @@ timer0:
     return
  
  frecuencia:
-    banksel OSCCON
-    bcf     IRCF0
+    banksel OSCCON //nos vamos al bancoo 1 
+    bcf     IRCF0  //escogemos los valores del osscon
     bcf     IRCF1
     bcf     IRCF2
     bsf     SCS 
@@ -167,43 +168,37 @@ timer0:
     
     
  empezar:
-    movlw   226
+    movlw   226  //movemos la literal al timer 0
     movwf   TMR0
     bcf     T0IF
     return
     
 ;-----------------------------Alarma---------------------------
  comparar:
-    MOVF   PORTB, W
-    XORWF  PORTC, W
-    BTFSC  STATUS, 2
-    bsf PORTE,0
+    MOVF   PORTB, W  //movemos el valor de puertob a w
+    XORWF  PORTC, W  //comparamos si son iguales
+    BTFSS  STATUS, 2 //revisamos que queda en el bit 2 del registro status para saber si son iguales
     return
-
-;----------------------------reset----------------------------
- resett:
-   btfsc PORTE, 0 
-   bcf PORTE,0
+    bsf PORTE,0	     //ponemos el puerto e en 1
+    call DELAY       //llamamos al delay
+    clrf PORTB       //limpiamos el puerto b
     return
    
+DELAY:
     
-;-----------Delays-----------------
-    DELAY_50MS:
-	MOVLW 100
-	MOVWF CONT2 
-    CONFIG1:
-	CALL	DELAY_50MS
-	DECFSZ  CONT2,F 
-	GOTO    CONFIG1
-    RETURN
+    MOVLW 0Xfa     //movemos una literal 
+    MOVWF CONT1   //movemos la literal cont1
+    MOVLW 0X0d    //movemos otra literal 
+    MOVWF CONT2   //movemos la literal al cont2
     
-    DELAY_500US:
-	MOVLW  250
-	MOVWF  CONT1 
-	DECFSZ CONT1,F
-	GOTO   $-1  
-    RETURN
-     
+LOOP:
+    DECFSZ CONT1, 1
+    GOTO LOOP
+    DECFSZ CONT2, 1
+    GOTO LOOP
+    NOP
+RETURN
+
 END
 
     
