@@ -26,13 +26,14 @@ PSECT udata_bank0
   CONT1: ds 1 
   CONT2: ds 1
   
+  
     
 
-GOTO SETUP
+
     
 PSECT code, delta = 2, abs 
  ORG 100h 
-
+ 
     
 SETUP:  
     BSF	STATUS, 5 ;entramos al banco para poder entrar el registro ansel y poder limpiarlo
@@ -80,7 +81,7 @@ main:
       call  empezar         //llamamos la funcion empezar
       incf  PORTB           //incrementamos el puertob
       call  comparar        //llamamos la funcion comparar
-      bcf  PORTE,0          //limpiamos el puerto RE0
+      bcf  PORTE,0 //limpiamos el puerto RE0
       goto main             //vamos al main
        
 
@@ -120,7 +121,7 @@ bajar1:
     return
     
 ;--------------------Tabla----------------------
-    
+
 display:
    CLRF  PCLATH              ;limpiamos el registro
    bsf   PCLATH, 0           ;ponemos en 1 el bit 0 del registro

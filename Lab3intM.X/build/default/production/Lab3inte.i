@@ -1,6 +1,6 @@
-# 1 "laboratorio2.s"
+# 1 "Lab3inte.s"
 # 1 "<built-in>" 1
-# 1 "laboratorio2.s" 2
+# 1 "Lab3inte.s" 2
 PROCESSOR 16F887
 
 # 1 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\xc.inc" 1 3
@@ -2448,7 +2448,7 @@ stk_offset SET 0
 auto_size SET 0
 ENDM
 # 7 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\xc.inc" 2 3
-# 3 "laboratorio2.s" 2
+# 3 "Lab3inte.s" 2
 
     CONFIG FOSC = INTRC_NOCLKOUT
     CONFIG WDTE = OFF
@@ -2464,11 +2464,7 @@ ENDM
     ;configuration word 1
     CONFIG WRT = OFF
     CONFIG BOR4V=BOR40V
-
-     contarriba EQU 0
-     alarma EQU 0
-
-
+    contarriba EQU 0
 
 PSECT udata_bank0
 
@@ -2476,97 +2472,142 @@ PSECT udata_bank0
   CONT2: ds 1
 
 
+PSECT udata_shr
+  STATUS_TEMP: DS 1
+  W_TEMP: DS 1
+
+PSECT resVect, class=CODE, abs, delta = 2
+;-------------vector res---------------------------
+ORG 00h
+    resetVec:
+ PAGESEL main
+ goto main
+;----------------------Interrupcion VEC-----------------------
+PSECT intVect, class = CODE,abs, delta = 2
+ORG 04h
+
+ push:
+    MOVWF W_TEMP
+    SWAPF STATUS, W
+    MOVWF STATUS_TEMP
+
+ isr:
+    btfsc ((INTCON) and 07Fh), 0
+    call PuertoA
+
+    btfsc ((INTCON) and 07Fh), 2
+    call timerint
 
 
+ pop:
+    SWAPF STATUS_TEMP, W
+    MOVWF STATUS
+    SWAPF W_TEMP, F
+    SWAPF W_TEMP, W
+    RETFIE
+ ;---------------interrupcion----------------------------
+ PuertoA:
+    btfss PORTB, 1
+    incf PORTA
+    btfss PORTB, 0
+    decf PORTA
+    movf PORTB, W
+    bcf ((INTCON) and 07Fh), 0
+    return
+
+ timerint:
+   incf PORTD
+   return
 
 
 PSECT code, delta = 2, abs
  ORG 100h
 
-
-SETUP:
-    BSF STATUS, 5 ;entramos al banco para poder entrar el registro ansel y poder limpiarlo
-    BSF STATUS, 6
-    CLRF ANSEL ;entradas digitales
-    CLRF ANSELH ;entradas digitales
-
-    BCF STATUS,6 ;nos cambiamos de banco
-    BSF STATUS,5
-
-    BCF TRISB,0
-    BCF TRISB,1
-    BCF TRISB,2
-    BCF TRISB,3
-
-    BCF TRISC,0
-    BCF TRISC,1
-    BCF TRISC,2
-    BCF TRISC,3
-
-
-    BCF TRISE,0
-
-    BSF TRISA,0
-    BSF TRISA,1
-
-    BCF STATUS,6 ;nos cambiamos de banco
-    BCF STATUS,5
-
-    clrf PORTB
-    clrf PORTC
-    bcf PORTE,0
-
 ;-----------Main-----------------
 
 main:
 
-      call comparar
-      call frecuencia
-      call timer0
-      call presionar_arriba
-      call presionar_abajo
-      btfss ((INTCON) and 07Fh), 2
-      goto $-1
-      call empezar
-      incf PORTB
-      call comparar
-      bcf PORTE,0
-      goto main
+      call SETUP
+      call rbioc
 
 
-;--------------------Botones subir -----------------------
-presionar_arriba:
-    btfss PORTA, 0 ;revisamos si esta presionado el boton
+
+;--------------------Interrupcion----------------------
+loop:
+
+    call frecuencia
+    call timer0
+    btfss ((INTCON) and 07Fh), 2
+    goto $-1
+    call empezar
+    incf contarriba
+    movf contarriba, W
+    call display
+    movwf PORTD
+    movf PORTA, W
+    call display
+    movwf PORTC
+    goto loop
+rbioc:
+    banksel TRISA
+    movlw 00000011B
+    movwf IOCB
+
+    banksel PORTB
+    movf PORTB, W
+    bcf ((INTCON) and 07Fh), 0
+    bsf ((INTCON) and 07Fh), 7
+    bsf ((INTCON) and 07Fh), 3
     return
-    call anti_rebote_Arriba1 ;llamamos a la siguiente rutina
-    return ;regresamos a donde llamamos a la rutina
-anti_rebote_Arriba1:
-    btfsc PORTA, 0
-    goto anti_rebote_Arriba1 ;nos movemos a la rutina
-    call aumentar1 ;llamamos a la rutina
-    return
-aumentar1:
-    INCF contarriba,1 ;aumentamos el contador
-    MOVF contarriba, w ;movemos al registro w
-    call display ;llamamos a la funcion display
-    MOVWF PORTC ;movemos el valor del display al puerto c
-    return
-;--------------------Botones bajar -----------------------
- presionar_abajo:
-    btfss PORTA, 1 ;revisamos si esta presionado el boton
-    return
-    call anti_rebote_abajo1 ;llamamos a la siguiente rutina
-    return ;regresamos a donde llamamos a la rutina
-anti_rebote_abajo1:
-    btfsc PORTA, 1
-    goto anti_rebote_abajo1 ;nos movemos a la rutina
-    call bajar1 ;llamamos a la rutina
-    return
-bajar1:
-    DECF contarriba,1 ;disminuimos el contador
-    MOVF contarriba, w ;movemos al registro w
-    call display ;llamamos a la funcion display
-    MOVWF PORTC ;movemos el valor del display al puerto c
+
+SETUP:
+    banksel ANSEL
+    CLRF ANSEL ;entradas digitales
+    CLRF ANSELH ;entradas digitales
+
+
+   banksel TRISA
+
+    bcf TRISA, 0
+    bcf TRISA, 1
+    bcf TRISA, 2
+    bcf TRISA, 3
+
+    bsf TRISB, 0
+    bsf TRISB, 1
+    bsf TRISB, 2
+    bsf TRISB, 3
+    bsf TRISB, 7
+
+    bcf TRISC, 0
+    bcf TRISC, 1
+    bcf TRISC, 2
+    bcf TRISC, 3
+    bcf TRISC, 4
+    bcf TRISC, 5
+    bcf TRISC, 6
+    bcf TRISC, 7
+
+    bcf TRISD, 0
+    bcf TRISD, 1
+    bcf TRISD, 2
+    bcf TRISD, 3
+    bcf TRISD, 4
+    bcf TRISD, 5
+    bcf TRISD, 6
+    bcf TRISD, 7
+
+
+
+    bcf OPTION_REG, 7
+    movlw 11111111B
+    movwf WPUB
+
+
+    banksel PORTA
+    clrf PORTA
+    clrf PORTC
+    clrf PORTD
     return
 
 ;--------------------Tabla----------------------
@@ -2574,24 +2615,26 @@ bajar1:
 display:
    CLRF PCLATH ;limpiamos el registro
    bsf PCLATH, 0 ;ponemos en 1 el bit 0 del registro
+   andlw 00001111B
    ADDWF PCL ;sumamos 1 al pcl para poder determinar que sale ne l display
-   RETLW 0000B ;numero_0
-   RETLW 1000B ;numero_1
-   RETLW 0100B ;numero_2
-   RETLW 1100B ;numero_3
-   RETLW 0010B ;numero_4
-   RETLW 1010B ;numero_5
-   RETLW 0110B ;numero_6
-   RETLW 1110B ;numero_7
-   RETLW 0001B ;numero_8
-   RETLW 1001B ;numero_9
-   RETLW 0101B ;numero_A
-   RETLW 1101B ;numero_B
-   RETLW 0011B ;numero_C
-   RETLW 1011B ;numero_D
-   RETLW 0111B ;numero_E
-   RETLW 1111B ;numero_F
+   RETLW 00111111B ;numero_0
+   RETLW 00000110B ;numero_1
+   RETLW 01011011B ;numero_2
+   RETLW 01001111B ;numero_3
+   RETLW 01100110B ;numero_4
+   RETLW 01101101B ;numero_5
+   RETLW 01111101B ;numero_6
+   RETLW 00000111B ;numero_7
+   RETLW 01111111B ;numero_8
+   RETLW 01101111B ;numero_9
+   RETLW 01110111B ;numero_A
+   RETLW 01111100B ;numero_B
+   RETLW 00111001B ;numero_C
+   RETLW 01011110B ;numero_D
+   RETLW 01111001B ;numero_E
+   RETLW 01110001B ;numero_F
    return
+
 
 ;-----------Configuraciones timer y oscilador-----------------
 
@@ -2624,15 +2667,6 @@ timer0:
     return
 
 ;-----------------------------Alarma---------------------------
- comparar:
-    MOVF PORTB, W
-    XORWF PORTC, W
-    BTFSS STATUS, 2
-    return
-    bsf PORTE,0
-    call DELAY
-    clrf PORTB
-    return
 
 DELAY:
 
