@@ -3,14 +3,13 @@
     <type>com.microchip.mplab.nbide.embedded.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>Lab4intM</name>
-            <creation-uuid>2823fa52-c782-4492-a26a-fa3ef5c6e5ad</creation-uuid>
+            <name>lab5m</name>
+            <creation-uuid>aa03eceb-3c6c-406a-98a6-2ecaf4d7f272</creation-uuid>
             <make-project-type>0</make-project-type>
             <c-extensions/>
             <cpp-extensions/>
             <header-extensions/>
             <asminc-extensions/>
-            <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList/>
             <confList>
@@ -19,6 +18,7 @@
                     <type>2</type>
                 </confElem>
             </confList>
+            <sourceEncoding>UTF-8</sourceEncoding>
             <formatting>
                 <project-formatting-style>false</project-formatting-style>
             </formatting>

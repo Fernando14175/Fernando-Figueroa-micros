@@ -1,6 +1,6 @@
-# 1 "Lab3inte.s"
+# 1 "Lab4inte.s"
 # 1 "<built-in>" 1
-# 1 "Lab3inte.s" 2
+# 1 "Lab4inte.s" 2
 PROCESSOR 16F887
 
 # 1 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\xc.inc" 1 3
@@ -2448,7 +2448,7 @@ stk_offset SET 0
 auto_size SET 0
 ENDM
 # 7 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\xc.inc" 2 3
-# 3 "Lab3inte.s" 2
+# 3 "Lab4inte.s" 2
 
     CONFIG FOSC = INTRC_NOCLKOUT
     CONFIG WDTE = OFF
@@ -2465,14 +2465,21 @@ ENDM
     CONFIG WRT = OFF
     CONFIG BOR4V=BOR40V
 
+ NUMERO equ 0x124
 
-PSECT udata_bank0
-  var: ds 1
-  banderas: ds 1
-  nibble: ds 2
-  display_var: ds 2
-
-
+PSECT udata_bank0 ;declaramos variables
+  var1: ds 1
+  banderas1: ds 1
+  nibble1: ds 2
+  nibble2: ds 2
+  display_var1: ds 2
+  display_var2: ds 2
+  CONT1: ds 1
+  CONT2: ds 1
+  unidad: ds 1
+  decena: ds 1
+  centena: ds 1
+  num_binario: DS 1
 
 PSECT udata_shr
   STATUS_TEMP: DS 1
@@ -2494,41 +2501,55 @@ ORG 04h
     MOVWF STATUS_TEMP
 
  isr:
-    btfsc ((INTCON) and 07Fh), 2
-    call int_t0
+    btfsc ((INTCON) and 07Fh), 0 ;interrupcion externa
+    call PuertoA
+
+
+    btfsc ((INTCON) and 07Fh), 2 ;interrupcion timer
+    call timerint
 
 
 
  pop:
-    SWAPF STATUS_TEMP
+    SWAPF STATUS_TEMP,W
     MOVWF STATUS
     SWAPF W_TEMP, F
     SWAPF W_TEMP, W
     RETFIE
 
-int_t0:
-    movlw 61
+ PuertoA:
+    btfss PORTB, 0 ;incrementamos el puerto con la interrupcion
+    incf PORTA
+    btfss PORTB, 1
+    decf PORTA
+    bcf ((INTCON) and 07Fh), 0 ;limpiamos la interrupcion
+    return
+
+timerint:
+    movlw 61 ;empezamos el timer
     movwf TMR0
     bcf ((INTCON) and 07Fh), 2
-    clrf PORTD
-    btfsc banderas, 0
+    clrf PORTE
+    btfsc banderas1, 0
+    goto display_2
     goto display_1
-    ;goto display_0
 
-display_0:
-    movf display_var+0, W
-    movwf PORTC
-    bsf PORTD, 0
-    goto siguiente_display
 
 display_1:
-    movf display_var+1, W
+    movf display_var1, W
     movwf PORTC
-    bsf PORTD, 1
+    bsf PORTE, 0
+    goto siguiente_display
+
+display_2:
+    movf display_var2, W
+    movwf PORTC
+    bsf PORTE, 1
+    goto siguiente_display
 
 siguiente_display:
     movlw 1
-    xorwf banderas, F
+    xorwf banderas1, F
     return
 
 
@@ -2538,7 +2559,7 @@ PSECT code, delta = 2, abs
  display:
    CLRF PCLATH ;limpiamos el registro
    bsf PCLATH, 0 ;ponemos en 1 el bit 0 del registro
-   andlw 0x0f ;evitamos que el display se pase del numero que queremos
+   ;andlw 0x0f ;evitamos que el display se pase del numero que queremos
    ADDWF PCL ;sumamos 1 al pcl para poder determinar que sale ne l display
    RETLW 00111111B ;numero_0
    RETLW 00000110B ;numero_1
@@ -2556,37 +2577,97 @@ PSECT code, delta = 2, abs
    RETLW 01011110B ;numero_D
    RETLW 01111001B ;numero_E
    RETLW 01110001B ;numero_F
-
+   return
 
 main:
       call SETUP ;llamamos la configuracion del pic
-      call config_reloj
-      call config_tmr0_ie
+      call config_tiempo
+      call config_timer
+      call rbioc
       banksel PORTA
 
 loop:
-     movlw 0xF9
-     movwf var
+     movf PORTA, W
+     movwf num_binario
+     movwf var1
+     call mover_centenas
      call separar_nibbles
      call preparar_displays
-     goto loop ;regresamos al loop
+     call Imprimir_display
+     goto loop
 
-separar_nibbles:
-    movf var,W
-    andlw 0x0f
-    movwf nibble
-    swapf var, W
-    andlw 0x0f
-    movwf nibble+1
+Imprimir_display:
+     call apagar_displays
+     movf centena, W;Number 1
+     call display
+     movwf PORTD
+     call display_izq
+
+     call apagar_displays
+     movf decena,W ;Number 2
+     call display
+     movwf PORTD
+     call display_centro
+
+     call apagar_displays
+     movf unidad, W ;Number 3
+     call display
+     movwf PORTD
+     call display_der
+     return
+
+rbioc:
+    banksel TRISA
+    bsf IOCB, 0
+    bsf IOCB, 1
+
+    banksel PORTB
+    movf PORTB, W
+    bcf ((INTCON) and 07Fh), 0
+    bsf ((INTCON) and 07Fh), 7
+    bsf ((INTCON) and 07Fh), 3
     return
 
+separar_nibbles:
+    movf var1,W
+    andlw 0x0f
+    movwf nibble1
+
+    swapf var1, W
+    andlw 0x0f
+    movwf nibble2
+
+
 preparar_displays:
-    movf nibble, W
+    movf nibble1, W
     call display
-    movwf display_var
-    movf nibble+1, W
+    movwf display_var1
+
+    movf nibble2, W
     call display
-    movwf display_var+1
+    movwf display_var2
+
+    return
+
+apagar_displays:
+    bcf PORTB, 5 ; left
+    bcf PORTB, 6 ; mid
+    bcf PORTB, 7 ; right
+    return
+
+display_izq:
+    bsf PORTB, 5 ; left
+    call Delay
+    return
+
+display_centro:
+    bsf PORTB, 6 ; mid
+    call Delay
+    return
+
+display_der:
+    bsf PORTB, 7 ; right
+    call Delay
     return
 
 SETUP:
@@ -2595,16 +2676,47 @@ SETUP:
     clrf ANSELH
 
     banksel TRISA
-    clrf TRISC
+
+    bcf TRISA, 0
+    bcf TRISA, 1
+    bcf TRISA, 2
+    bcf TRISA, 3
+    bcf TRISA, 4
+    bcf TRISA, 5
+    bcf TRISA, 6
+    bcf TRISA, 7
+
     bcf TRISD, 0
     bcf TRISD, 1
+    bcf TRISD, 2
+    bcf TRISD, 3
+    bcf TRISD, 4
+    bcf TRISD, 5
+    bcf TRISD, 6
+    bcf TRISD, 7
+
+    bsf TRISB, 0
+    bsf TRISB, 1
+    bcf TRISB, 5
+    bcf TRISB, 6
+    bcf TRISB, 7
+
+    clrf TRISC
+
+
+    bcf TRISE,0
+    bcf TRISE,1
+
 
     banksel PORTA
     clrf PORTC
+    clrf PORTA
+    clrf PORTE
+    clrf PORTB
     clrf PORTD
     return
 
-config_reloj:
+config_tiempo:
     banksel OSCCON
     bsf ((OSCCON) and 07Fh), 6
     bsf ((OSCCON) and 07Fh), 5
@@ -2612,7 +2724,7 @@ config_reloj:
     bsf ((OSCCON) and 07Fh), 0
     return
 
-config_tmr0_ie:
+config_timer:
     banksel TRISA
     bcf ((OPTION_REG) and 07Fh), 5
     bcf ((OPTION_REG) and 07Fh), 3
@@ -2623,8 +2735,64 @@ config_tmr0_ie:
     movlw 61
     movwf TMR0
     bcf ((INTCON) and 07Fh), 2
-    bsf ((INTCON) and 07Fh), 7
     bsf ((INTCON) and 07Fh), 5
     bcf ((INTCON) and 07Fh), 2
     return
+
+mover_centenas:
+    clrf centena
+    movlw 100
+    goto conv_centenas
+
+mover_decenas:
+    clrf decena
+    movlw 100
+    addwf num_binario
+    movlw 10
+    goto conv_decenas
+
+mover_unidades:
+    clrf unidad
+    movlw 10
+    addwf num_binario
+    movlw 1
+    goto conv_unidades
+
+conv_centenas:
+    subwf num_binario, F
+    btfss STATUS,0
+    goto mover_decenas
+    incf centena, F
+    goto conv_centenas
+
+
+conv_decenas:
+    subwf num_binario,F
+    btfss STATUS,0
+    goto mover_unidades
+    incf decena, F
+    goto conv_decenas
+
+conv_unidades:
+    subwf num_binario,F
+    btfss STATUS, 0
+    return
+    incf unidad, F
+    goto conv_unidades
+
+Delay:
+
+    MOVLW 0Xfa
+    MOVWF CONT1
+    MOVLW 0X0d
+    MOVWF CONT2
+
+LOOP:
+    DECFSZ CONT1, 1
+    GOTO LOOP
+    DECFSZ CONT2, 1
+    GOTO LOOP
+    NOP
+RETURN
+
 END
