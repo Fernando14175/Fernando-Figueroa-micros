@@ -1,0 +1,164 @@
+[p GLOBOPT AUTOSTATIC IEEE_DBL IEEE_FLT PIC14 PICREGULAR PICMID ]
+[d version 1.1 ]
+[d edition pro ]
+[d chip 16F887 ]
+[d frameptr 0 ]
+"14 C:\Users\Fernando Figueroa\Documents\GitHub\Fernando-Figueroa-micros\usart.X/USART.h
+[v _eusart_init_tx eusart_init_tx `(v  1 e 1 0 ]
+"28
+[v _eusart_enable_tx_isr eusart_enable_tx_isr `(v  1 e 1 0 ]
+"40
+[v _eusart_init_rx eusart_init_rx `(v  1 e 1 0 ]
+"53
+[v _eusart_enable_rx_isr eusart_enable_rx_isr `(v  1 e 1 0 ]
+"10 C:\Program Files\Microchip\xc8\v2.31\pic\sources\c90\common\sprcadd.c
+[v ___fladd __fladd `(d  1 e 4 0 ]
+"4 C:\Program Files\Microchip\xc8\v2.31\pic\sources\c90\common\Umul8_16.c
+[v __Umul8_16 _Umul8_16 `(ui  1 e 2 0 ]
+"6 C:\Program Files\Microchip\xc8\v2.31\pic\sources\c90\pic\__eeprom.c
+[v ___eecpymem __eecpymem `(v  1 e 1 0 ]
+"39
+[v ___memcpyee __memcpyee `(v  1 e 1 0 ]
+"51 C:\Users\Fernando Figueroa\Documents\GitHub\Fernando-Figueroa-micros\usart.X\master.c
+[v _main main `(v  1 e 1 0 ]
+"62
+[v _isr isr `II(v  1 e 1 0 ]
+"90
+[v _setup setup `(v  1 e 1 0 ]
+"290 C:/Program Files (x86)/Microchip/MPLABX/v5.40/packs/Microchip/PIC16Fxxx_DFP/1.2.33/xc8\pic\include\proc\pic16f887.h
+[v _PORTC PORTC `VEuc  1 e 1 @7 ]
+[s S105 . 1 `uc 1 RBIF 1 0 :1:0 
+`uc 1 INTF 1 0 :1:1 
+`uc 1 T0IF 1 0 :1:2 
+`uc 1 RBIE 1 0 :1:3 
+`uc 1 INTE 1 0 :1:4 
+`uc 1 T0IE 1 0 :1:5 
+`uc 1 PEIE 1 0 :1:6 
+`uc 1 GIE 1 0 :1:7 
+]
+"482
+[s S114 . 1 `uc 1 . 1 0 :2:0 
+`uc 1 TMR0IF 1 0 :1:2 
+`uc 1 . 1 0 :2:3 
+`uc 1 TMR0IE 1 0 :1:5 
+]
+[u S119 . 1 `S105 1 . 1 0 `S114 1 . 1 0 ]
+[v _INTCONbits INTCONbits `VES119  1 e 1 @11 ]
+[s S160 . 1 `uc 1 TMR1IF 1 0 :1:0 
+`uc 1 TMR2IF 1 0 :1:1 
+`uc 1 CCP1IF 1 0 :1:2 
+`uc 1 SSPIF 1 0 :1:3 
+`uc 1 TXIF 1 0 :1:4 
+`uc 1 RCIF 1 0 :1:5 
+`uc 1 ADIF 1 0 :1:6 
+]
+"553
+[u S168 . 1 `S160 1 . 1 0 ]
+[v _PIR1bits PIR1bits `VES168  1 e 1 @12 ]
+[s S61 . 1 `uc 1 RX9D 1 0 :1:0 
+`uc 1 OERR 1 0 :1:1 
+`uc 1 FERR 1 0 :1:2 
+`uc 1 ADDEN 1 0 :1:3 
+`uc 1 CREN 1 0 :1:4 
+`uc 1 SREN 1 0 :1:5 
+`uc 1 RX9 1 0 :1:6 
+`uc 1 SPEN 1 0 :1:7 
+]
+"1068
+[s S70 . 1 `uc 1 RCD8 1 0 :1:0 
+`uc 1 . 1 0 :5:1 
+`uc 1 RC9 1 0 :1:6 
+]
+[s S74 . 1 `uc 1 . 1 0 :6:0 
+`uc 1 nRC8 1 0 :1:6 
+]
+[s S77 . 1 `uc 1 . 1 0 :6:0 
+`uc 1 RC8_9 1 0 :1:6 
+]
+[u S80 . 1 `S61 1 . 1 0 `S70 1 . 1 0 `S74 1 . 1 0 `S77 1 . 1 0 ]
+[v _RCSTAbits RCSTAbits `VES80  1 e 1 @24 ]
+"1133
+[v _TXREG TXREG `VEuc  1 e 1 @25 ]
+"1140
+[v _RCREG RCREG `VEuc  1 e 1 @26 ]
+"1540
+[v _TRISC TRISC `VEuc  1 e 1 @135 ]
+[s S137 . 1 `uc 1 TMR1IE 1 0 :1:0 
+`uc 1 TMR2IE 1 0 :1:1 
+`uc 1 CCP1IE 1 0 :1:2 
+`uc 1 SSPIE 1 0 :1:3 
+`uc 1 TXIE 1 0 :1:4 
+`uc 1 RCIE 1 0 :1:5 
+`uc 1 ADIE 1 0 :1:6 
+]
+"1718
+[u S145 . 1 `S137 1 . 1 0 ]
+[v _PIE1bits PIE1bits `VES145  1 e 1 @140 ]
+[s S24 . 1 `uc 1 TX9D 1 0 :1:0 
+`uc 1 TRMT 1 0 :1:1 
+`uc 1 BRGH 1 0 :1:2 
+`uc 1 SENDB 1 0 :1:3 
+`uc 1 SYNC 1 0 :1:4 
+`uc 1 TXEN 1 0 :1:5 
+`uc 1 TX9 1 0 :1:6 
+`uc 1 CSRC 1 0 :1:7 
+]
+"2582
+[s S33 . 1 `uc 1 TXD8 1 0 :1:0 
+`uc 1 . 1 0 :5:1 
+`uc 1 nTX8 1 0 :1:6 
+]
+[s S37 . 1 `uc 1 . 1 0 :6:0 
+`uc 1 TX8_9 1 0 :1:6 
+]
+[u S40 . 1 `S24 1 . 1 0 `S33 1 . 1 0 `S37 1 . 1 0 ]
+[v _TXSTAbits TXSTAbits `VES40  1 e 1 @152 ]
+"2642
+[v _SPBRG SPBRG `VEuc  1 e 1 @153 ]
+"2704
+[v _SPBRGH SPBRGH `VEuc  1 e 1 @154 ]
+"3387
+[v _ANSEL ANSEL `VEuc  1 e 1 @392 ]
+"3449
+[v _ANSELH ANSELH `VEuc  1 e 1 @393 ]
+"43 C:\Users\Fernando Figueroa\Documents\GitHub\Fernando-Figueroa-micros\usart.X\master.c
+[v _eusart_flag eusart_flag `a  1 e 1 0 ]
+"44
+[v _uart_data uart_data `uc  1 e 1 0 ]
+"46
+[v _str_pos str_pos `uc  1 e 1 0 ]
+"51
+[v _main main `(v  1 e 1 0 ]
+{
+"60
+} 0
+"90
+[v _setup setup `(v  1 e 1 0 ]
+{
+"110
+} 0
+"14 C:\Users\Fernando Figueroa\Documents\GitHub\Fernando-Figueroa-micros\usart.X/USART.h
+[v _eusart_init_tx eusart_init_tx `(v  1 e 1 0 ]
+{
+"26
+} 0
+"40
+[v _eusart_init_rx eusart_init_rx `(v  1 e 1 0 ]
+{
+"51
+} 0
+"28
+[v _eusart_enable_tx_isr eusart_enable_tx_isr `(v  1 e 1 0 ]
+{
+"33
+} 0
+"53
+[v _eusart_enable_rx_isr eusart_enable_rx_isr `(v  1 e 1 0 ]
+{
+"58
+} 0
+"62 C:\Users\Fernando Figueroa\Documents\GitHub\Fernando-Figueroa-micros\usart.X\master.c
+[v _isr isr `II(v  1 e 1 0 ]
+{
+"88
+} 0
