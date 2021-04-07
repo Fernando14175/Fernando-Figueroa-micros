@@ -2476,6 +2476,9 @@ PSECT udata_bank0 ;declaramos variables
   num_binario: ds 1
   display_var1: ds 2
   display_var2: ds 2
+  semaforo_cont: ds 1
+  seleccion_sem: ds 1
+
 
 PSECT udata_shr
   STATUS_TEMP: DS 1
@@ -2514,35 +2517,44 @@ ORG 04h
     RETFIE
 
 fue_tmr1:
-    movlw 50
+    movlw 254
     movwf TMR1H
-    movlw 300
+    movlw 66
     movwf TMR1L
     bcf ((PIR1) and 07Fh), 0
-    incf PORTA
+    bcf PORTE,0 ;limpiamos para multiplexar
+    bcf PORTE,1 ;limpiamos para multiplexar
+    btfsc banderas1, 0 ;revisamos que el bit este en 0 para hacer multiplexado para los primeros dos displays
+    goto display_2 ;encendemos un display
+    goto display_1 ;encendemos el otro display
+    return
+
+
+   incrementar_reset:
+    clrf semaforo_cont
+    incf seleccion_sem
+    movf seleccion_sem, w
+    xorlw 3
+    btfsc STATUS, 2
+    clrf seleccion_sem
     return
 
 fue_tmr2:
     clrf TMR2
     bcf ((PIR1) and 07Fh), 1
-    btfsc PORTD, 0
-    bcf PORTD ,0
-    bcf PORTE, 0
-    bcf PORTE, 1
-    call delay_big
-    bsf PORTD, 0
-    bSf PORTE, 0
-    bsf PORTE, 1
     return
 
 timerint:
-    movlw 240 ;empezamos el timer
+    movlw 255 ;empezamos el timer
     movwf TMR0
     bcf ((INTCON) and 07Fh), 2
-    clrf PORTE ;limpiamos para multiplexar
-    btfsc banderas1, 0 ;revisamos que el bit este en 0 para hacer multiplexado para los primeros dos displays
-    goto display_2 ;encendemos un display
-    goto display_1 ;encendemos el otro display
+    incf PORTA
+    incf semaforo_cont
+    movf semaforo_cont, w
+    xorlw 31
+    btfsc STATUS, 2
+    call incrementar_reset
+    return
 
 display_1:
     movf display_var1, W ;le mandamos al display la variable que tiene el numero
@@ -2590,20 +2602,114 @@ main:
       call config_interrupt
       banksel PORTA
 loop:
-   goto mover_puerto
-
-loop2:
+   call llamar_semaforos
+   movf PORTA, W ;movemos el porta a w para los dos leds
+   movwf num_binario
+   xorlw 31
+   btfsc STATUS, 2
+   call res_puerto
    call mover_decenas ;llamamos a la funcion centenas
    call preparar_displays ;le mandamos el valor a los displays
    goto loop
 
-mover_puerto:
-   movf PORTA, W ;movemos el porta a w para los dos leds
-   movwf num_binario
-   xorlw 0x64
-   btfsc STATUS, 2
-   call res_puerto
-   goto loop2
+
+llamar_semaforos:
+    call semaforo1
+    call semaforo2
+    call semaforo3
+    return
+
+semaforo1:
+    movf seleccion_sem, w
+    xorlw 0
+    btfsc STATUS, 2
+    call encender_sem1
+    return
+
+encender_sem1:
+    bcf PORTD, 0
+    bcf PORTD, 1
+    bsf PORTD, 2
+    bsf PORTD, 3
+    bcf PORTD, 4
+    bcf PORTD, 5
+    bsf PORTD, 6
+    bcf PORTD, 7
+    bcf PORTE, 2
+    movf semaforo_cont, w
+    xorlw 28
+    btfsc STATUS, 2
+    call amarillo2
+    return
+
+amarillo2:
+    bsf PORTD, 4
+    xorlw 30
+    btfsc STATUS, 2
+    bcf PORTD, 4
+    return
+
+semaforo2:
+    movf seleccion_sem, w
+    xorlw 1
+    btfsc STATUS, 2
+    call encender_sem2
+    return
+
+encender_sem2:
+    bsf PORTD, 0
+    bcf PORTD, 1
+    bcf PORTD, 2
+    bcf PORTD, 3
+    bcf PORTD, 4
+    bsf PORTD, 5
+    bsf PORTD, 6
+    bcf PORTD, 7
+    bcf PORTE, 2
+    movf semaforo_cont, w
+    xorlw 28
+    btfsc STATUS, 2
+    call amarillo3
+    return
+
+amarillo3:
+    bsf PORTD, 7
+    xorlw 30
+    btfsc STATUS, 2
+    bcf PORTD, 7
+    return
+
+
+semaforo3:
+    movf seleccion_sem, w
+    xorlw 2
+    btfsc STATUS, 2
+    call encender_sem3
+    return
+
+encender_sem3:
+    bsf PORTD, 0
+    bcf PORTD, 1
+    bcf PORTD, 2
+    bsf PORTD, 3
+    bcf PORTD, 4
+    bcf PORTD, 5
+    bcf PORTD, 6
+    bcf PORTD, 7
+    bsf PORTE, 2
+    movf semaforo_cont, w
+    xorlw 28
+    btfsc STATUS, 2
+    call amarillo
+    return
+
+amarillo:
+    bsf PORTD, 1
+    xorlw 30
+    btfsc STATUS, 2
+    bcf PORTD, 1
+    return
+
 
 res_puerto:
     movlw 0x00
@@ -2618,6 +2724,7 @@ config_io:
     clrf TRISA
     clrf TRISD
     clrf TRISE
+    clrf TRISB
 
     banksel ANSEL
     clrf ANSEL
@@ -2628,6 +2735,7 @@ config_io:
     clrf PORTD
     clrf PORTE
     clrf PORTC
+    clrf PORTB
     return
 
 config_reloj:
@@ -2641,14 +2749,14 @@ config_reloj:
 config_tmr1:
     banksel PORTA
     bcf ((T1CON) and 07Fh), 6
-    bcf ((T1CON) and 07Fh), 5
+    bsf ((T1CON) and 07Fh), 5
     bsf ((T1CON) and 07Fh), 4
     bcf ((T1CON) and 07Fh), 3
     bcf ((T1CON) and 07Fh), 1
     bsf ((T1CON) and 07Fh), 0
-    movlw 0Bh
+    movlw 254
     movwf TMR1H
-    movlw 0EEH
+    movlw 66
     movwf TMR1L
     bcf ((PIR1) and 07Fh), 0
     return
@@ -2701,7 +2809,7 @@ config_timer: ;configuracion del timer
     bsf ((OPTION_REG) and 07Fh), 1
     bsf ((OPTION_REG) and 07Fh), 0
     banksel PORTA
-    movlw 240
+    movlw 255
     movwf TMR0
     bcf ((INTCON) and 07Fh), 2
     bsf ((INTCON) and 07Fh), 5
