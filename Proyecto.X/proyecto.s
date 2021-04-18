@@ -76,17 +76,17 @@ ORG 04h
     MOVWF STATUS_TEMP
     
  isr:
-    btfsc  RBIF			;interrupcion de los botones 
-    call   int_ioc		;llamamos la interrupcion de los botones
+    btfsc  RBIF			        ;interrupcion de los botones 
+    call   int_ioc		        ;llamamos la interrupcion de los botones
     
-    btfsc  TMR1IF		;interrupcion del timer 1 
-    call   fue_tmr1		;llamamos a la interrupcion del timer1
+    btfsc  TMR1IF		        ;interrupcion del timer 1 
+    call   fue_tmr1		        ;llamamos a la interrupcion del timer1
     
-    btfsc  T0IF			;interrupcion timer0
-    call   timerint		;llamamos interrupcion del timer0
+    btfsc  T0IF			        ;interrupcion timer0
+    call   timerint		        ;llamamos interrupcion del timer0
     
     
- pop:				;pop para las interrupciones 
+ pop:				        ;pop para las interrupciones 
     SWAPF STATUS_TEMP,W
     MOVWF STATUS 
     SWAPF W_TEMP, F 
@@ -345,6 +345,7 @@ estado_0_int:                           ;estado mandamos variables
     movwf  mandar_contador              ;movemos el valor a la variable mandar contador, la usamos para decirle al semaforo en que momento dar una vuelta 
     movf   T0_ACT, W                    ;movemos el tiempo del timer0 a w 
     movwf  T0_TEMP                      ;movemos el nuevo tiempo del timer0 al timer 0
+    goto   end_ioc
     
 estado_1_int:                            ;estado 1 revisamos botones  
     btfss  PORTB, B3                     ;revisamos el boton que cambia el display

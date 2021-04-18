@@ -2794,6 +2794,7 @@ estado_0_int: ;estado mandamos variables
     movwf mandar_contador ;movemos el valor a la variable mandar contador, la usamos para decirle al semaforo en que momento dar una vuelta
     movf T0_ACT, W ;movemos el tiempo del timer0 a w
     movwf T0_TEMP ;movemos el nuevo tiempo del timer0 al timer 0
+    goto end_ioc
 
 estado_1_int: ;estado 1 revisamos botones
     btfss PORTB, B3 ;revisamos el boton que cambia el display
