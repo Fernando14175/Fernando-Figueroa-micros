@@ -2792,7 +2792,7 @@ extern int printf(const char *, ...);
 
 
 void setup (void);
-void conversion (char puertoANL);
+void conversion2 (char puertoANL);
 
 unsigned int a = 0;
 unsigned int b = 0;
@@ -2814,9 +2814,9 @@ void main(void) {
     setup();
 
     while(1){
-         conversion(0);
+         conversion2(2);
        _delay((unsigned long)((1)*(8000000/4000.0)));
-        conversion(1);
+        conversion2(3);
        _delay((unsigned long)((1)*(8000000/4000.0)));
 
 
@@ -2825,10 +2825,10 @@ void main(void) {
 }
 
 void setup (void){
-    ANSEL = 0b0011;
+    ANSEL = 0b00001100;
     ANSELH = 0;
 
-    TRISA = 0b011;
+    TRISA = 0b00001100;
     TRISB = 0;
     TRISC = 0;
 
@@ -2886,10 +2886,10 @@ void setup (void){
     return;
 }
 
-void conversion(char puertoANL){
+void conversion2(char puertoANL){
 
     ADCON0bits.CHS = puertoANL;
-    if (ADCON0bits.GO_DONE==0 && puertoANL == 0){
+    if (ADCON0bits.GO_DONE==0 && puertoANL == 2){
         CCPR1L = (a >>1) +128;
 
         ADCON0bits.GO_DONE = 1;

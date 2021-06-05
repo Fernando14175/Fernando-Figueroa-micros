@@ -18,7 +18,7 @@
 "69
 [v _setup setup `(v  1 e 1 0 ]
 "131
-[v _conversion conversion `(v  1 e 1 0 ]
+[v _conversion2 conversion2 `(v  1 e 1 0 ]
 "166 C:/Program Files (x86)/Microchip/MPLABX/v5.40/packs/Microchip/PIC16Fxxx_DFP/1.2.33/xc8\pic\include\proc\PIC16F887.h
 [v _PORTA PORTA `VEuc  1 e 1 @5 ]
 "228
@@ -204,12 +204,12 @@
 "129
 } 0
 "131
-[v _conversion conversion `(v  1 e 1 0 ]
+[v _conversion2 conversion2 `(v  1 e 1 0 ]
 {
-[v conversion@puertoANL puertoANL `uc  1 a 1 wreg ]
-[v conversion@puertoANL puertoANL `uc  1 a 1 wreg ]
+[v conversion2@puertoANL puertoANL `uc  1 a 1 wreg ]
+[v conversion2@puertoANL puertoANL `uc  1 a 1 wreg ]
 "133
-[v conversion@puertoANL puertoANL `uc  1 a 1 6 ]
+[v conversion2@puertoANL puertoANL `uc  1 a 1 6 ]
 "145
 } 0
 "42
